@@ -22,6 +22,8 @@ const { NotImplementedError } = require('../extensions/index.js');
  class VigenereCipheringMachine {
   constructor(type = true) {
       this.type = type;
+      this.vigenereSquare = this.fillVigenereSquare();
+      this.LETTERS = [ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
   }
   encrypt(message, key) {
       if (arguments.length < 2 || !arguments[0] || !arguments[1]) {
@@ -30,22 +32,17 @@ const { NotImplementedError } = require('../extensions/index.js');
       let indexesOfMessage = this.stringToArrayOfIndexes(message);
       let indexesOfKey = this.stringToArrayOfIndexes(key);
       let length = indexesOfMessage.filter(el => typeof el !== "string").length;
-      if (key.length < length) {
-          indexesOfKey = this.lengthenKey(indexesOfKey, indexesOfMessage);
+      if (indexesOfKey.length < length) {
+          indexesOfKey = this.lengthenKey(indexesOfKey, length);
       }
       let res = [];
+      let n = this.vigenereSquare.length;
       for (let k = 0; k < indexesOfMessage.length; k++) {
           if (typeof indexesOfMessage[k] === "string") {
               res.push(indexesOfMessage[k]);
               indexesOfKey.unshift(0);
           } else {
-              for (let i = 0; i < n; i++) {
-                  for (let j = 0; j < n; j++) {
-                      if (i === indexesOfMessage[k] && j === indexesOfKey[k] ) {
-                          res.push(vigenereSquare[i][j]);
-                      }
-                  }
-              }
+            res.push(this.vigenereSquare[indexesOfMessage[k]][indexesOfKey[k]]);
           }
       }
       let encryptedMessage = this.getStringOfIndexes(res);
@@ -59,31 +56,41 @@ const { NotImplementedError } = require('../extensions/index.js');
       let indexesOfEncryptedMessage = this.stringToArrayOfIndexes(encryptedMessage);
       let indexesOfKey = this.stringToArrayOfIndexes(key);
       let length = indexesOfEncryptedMessage.filter(el => typeof el !== "string").length;
-      if (key.length < length) {
-          indexesOfKey = this.lengthenKey(indexesOfKey, indexesOfEncryptedMessage);
+      if (indexesOfKey.length < length) {
+          indexesOfKey = this.lengthenKey(indexesOfKey, length);
       }
       let res = [];
+      let n = this.vigenereSquare.length;
       for (let k = 0; k < indexesOfEncryptedMessage.length; k++) {
           if (typeof indexesOfEncryptedMessage[k] === "string") {
               res.push(indexesOfEncryptedMessage[k]);
               indexesOfKey.unshift(0);
           } else {
-              for (let i = 0; i < n; i++) {
-                  for (let j = 0; j < n; j++) {
-                      if (i === indexesOfKey[k] && vigenereSquare[i][j] === indexesOfEncryptedMessage[k]) {
-                          res.push(j);
-                      }
-                  }
-              }
+            res.push(this.vigenereSquare[indexesOfKey[k]].indexOf(indexesOfEncryptedMessage[k]));
           }
       }
       let decryptedMessage = this.getStringOfIndexes(res);
       return decryptedMessage;
   }
 
+  fillVigenereSquare() {
+      const vigenereSquare = [];
+      let n = 26;
+      for (let i = 0; i < n; i++) {
+          vigenereSquare[i] = [];
+          for (let j = 0; j < n; j++) {
+              if (j <= n - i - 1) {
+                  vigenereSquare[i][j] = i + j;
+              } else {
+                  vigenereSquare[i][j] = i + j - n;
+              }
+          }
+      }
+      return vigenereSquare;
+  }
+
   lengthenKey (key, length) {
       let count =Math.ceil(length / key.length);
-      let diff = length % key.length;
       let lengthenKey = [];
       while (count !== 0) {
           lengthenKey.push(key);
@@ -97,13 +104,13 @@ const { NotImplementedError } = require('../extensions/index.js');
       if (this.type) {
           string = arr.map(el => {
               if (typeof el === "number") {
-                  return LETTERS[el];
+                  return this.LETTERS[el];
               } return el
           } ).join("");
       } else {
           string = arr.map(el => {
               if (typeof el === "number") {
-                  return LETTERS[el];
+                  return this.LETTERS[el];
               } return el
           } ).reverse().join("");
       }
@@ -112,26 +119,13 @@ const { NotImplementedError } = require('../extensions/index.js');
 
   stringToArrayOfIndexes(str) {
       return str.toUpperCase().split("").map(letter => {
-          if (LETTERS.includes(letter)) {
-              return LETTERS.indexOf(letter);
+          if (this.LETTERS.includes(letter)) {
+              return this.LETTERS.indexOf(letter);
           } else return letter;
       })
   }
 
 }
-const vigenereSquare = [];
-let n = 26;
-for (let i = 0; i < n; i++) {
-  vigenereSquare[i] = [];
-  for (let j = 0; j < n; j++) {
-      if (j <= n - i - 1) {
-          vigenereSquare[i][j] = i + j;
-      } else {
-          vigenereSquare[i][j] = i + j - n;
-      }
-  }
-}
-const LETTERS = [ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 module.exports = {
   VigenereCipheringMachine
 };
